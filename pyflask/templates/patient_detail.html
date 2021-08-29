@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="ko">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<meta http-equiv="X-UA-Compatible" content="ie=edge">
+		
+		<!-- SEO Meta Tags -->
+		<meta name="description" content="폐렴 X-Ray 이미지를 입력하고 분석 결과를 받아보세요. GoogLeNet으로 딥러닝된 모델이 이미지를 분류하고 특징을 보여줍니다.">
+		<meta name="author" content="2020 IT 졸업프로젝트-한혜원, 하윤주">
+
+		<!-- OG Meta Tags to improve the way the post looks when you share the page on LinkedIn, Facebook, Google+ -->
+		<meta property="og:site_name" content="AI Covid-19 폐 X-RAY 분류기" /> <!-- website name -->
+		<meta property="og:site" content="http://3.35.191.97:5000/" /> <!-- website link -->
+		<meta property="og:title" content="AI Covid-19 폐 X-RAY 분류기" /> <!-- title shown in the actual shared post -->
+		<meta property="og:description" content="폐렴 X-Ray 이미지를 입력하고 분석 결과를 받아보세요. GoogLeNet으로 딥러닝된 모델이 이미지를 분류하고 특징을 보여줍니다." /> <!-- description shown in the actual shared post -->
+		<meta property="og:image" content="" /> <!-- image link, make sure it's jpg -->
+		<meta property="og:url" content="" /> <!-- where do you want your post to link to -->
+		<meta property="og:type" content="program" />
+
+		<!-- Website Title -->
+		<title>AI Covid-19 폐 X-RAY 분류기</title>
+		
+		<!-- Styles -->
+		<link href="https://fonts.googleapis.com/css?family=Open+Sans:400,400i,700&display=swap&subset=latin-ext" rel="stylesheet">
+		<link href="{{ url_for('static', filename='css/bootstrap.css') }}" rel="stylesheet">
+		<link href="{{ url_for('static', filename='css/fontawesome-all.css') }}" rel="stylesheet">
+		<link href="{{ url_for('static', filename='css/swiper.css') }}" rel="stylesheet">
+		<link href="{{ url_for('static', filename='css/magnific-popup.css') }}" rel="stylesheet">
+		<link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
+		
+		<!— Favicon  —>
+		<link rel="icon" href="{{ url_for('static', filename='images/icon-hhproject.png') }}">
+
+	</head>
+	<body>
+		
+		<!-- Preloader -->
+		<div class="spinner-wrapper">
+			<div class="spinner">
+				<div class="bounce1"></div>
+				<div class="bounce2"></div>
+				<div class="bounce3"></div>
+			</div>
+		</div>
+		<!-- end of preloader -->
+		
+
+		<!-- Navigation -->
+		<nav class="navbar navbar-expand-lg navbar-dark navbar-custom fixed-top">
+			<div class="container">
+
+				<!-- Text Logo - Use this if you don't have a graphic logo -->
+				<!-- <a class="navbar-brand logo-text page-scroll" href="index.html">Tivo</a> -->
+
+				<!-- Image Logo -->
+				<a class="navbar-brand logo-image" href="/"><img src="{{ url_for('static', filename='images/logo-hhproject.png') }}" alt="LOGO"></a>  
+				
+				<!-- Mobile Menu Toggle Button -->
+				<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+					<span class="navbar-toggler-awesome fas fa-bars"></span>
+					<span class="navbar-toggler-awesome fas fa-times"></span>
+				</button>
+				<!-- end of mobile menu toggle button -->
+
+				<div class="collapse navbar-collapse" id="navbarsExampleDefault">
+					<ul class="navbar-nav ml-auto">
+						<li class="nav-item">
+							<a class="nav-link page-scroll" href="/">HOME <span class="sr-only">(current)</span></a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link page-scroll" href="/img_select">진단</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link page-scroll" href="/patient_progress">환자기록</a>
+						</li>
+						{% if g.user %}
+						<li class="nav-item">
+							<a class="nav-link page-scroll" href="/logout">{{ g.user }} (LOGOUT)</a>
+						</li>
+						{% else %}
+						<li class="nav-item">
+							<a class="nav-link page-scroll" href="/login"> LOGIN</a>
+						</li>
+						{% endif %}
+
+						<!-- Dropdown Menu -->          
+						
+						<!-- end of dropdown menu -->
+
+					</ul>
+				</div>
+			</div> <!-- end of container -->
+		</nav> <!-- end of navbar -->
+		<!-- end of navigation -->
+
+
+		<!-- Header -->
+		<header id="header" style="background-color: #0B486B;min-height: 100vh; padding-top:9rem; color:white;">
+			<div class="container">
+				<div class="row">
+					<div class="col-lg-6">
+						<div class="row" style="justify-content: left; ">
+						   <div class="col-lg-9">
+							  <div>
+							  <select id="selcolor"  style="width:65px; border: 1px solid #999; border-radius:2rem; padding-left:5px;" >
+								 <option value="black">색상</option>
+								 <option value="black">검정</option>
+								 <option value="red">빨강</option>
+								 <option value="green">초록</option>
+								 <option value="blue">파랑</option>
+								 <option value="magenta">분홍</option>
+							  </select>
+							  <select id="selwidth"  style="width:65px; border: 1px solid #999; border-radius:2rem; padding-left:5px;" >
+								 <option value="1">굵기</option>
+								 <option value="1">얇게</option>
+								 <option value="3">중간</option>
+								 <option value="5">굵게</option>
+							  </select>
+							  <input style=" font: 700 0.9rem/0 'Open Sans', sans-serif; width:85px; height:30px; border: 1px solid #999; background-color: rgb(255, 255, 255); color: #0B486B; border-radius:2rem;" type="button" id="clear" value="모두 지움" />
+							  </div>
+						   </div>
+						   <div class ="col-lg-3 text-right">
+							  <a id="download" download="x-ray_result_{{ p_name }}.png" onClick="download1()"><button style="font: 700 0.9rem/0 'Open Sans', sans-serif; width:85px; height:30px; border: 1px solid #999; background-color: rgb(255, 255, 255); color: #0B486B; border-radius:2rem;" type="button" >다운로드</button></a>
+						   </div>
+						</div>
+						<div class="row mt-2" style="justify-content: center; ">
+						   <div class="col-lg-12">
+							  <canvas id="canvas" width="550" height="490" style="width: 100%;border: 1px solid black; background-color:black;" >지원하지 않는 브라우저입니다.</canvas>
+						   </div>
+						</div>
+					 </div>
+					 <div class="col-lg-5 ml-3">
+						<div class="row justify-content-left mt-5">
+						   <h3 style="color:white;">
+							  진단 결과 : {{pred}}
+						   <h3>
+						</div>
+						<div class="row justify-content-left mt-3">
+						   <h6 style="color:white;">환자명 : {{p_name}}</h6>
+						</div>
+						<div class="row justify-content-left">
+						   <h6 style="color:white;">{{xray_date}}</h6>
+						</div>
+						<div class="row justify-content-left">
+						   <h6 style="color:white;">예측 정확도 : {{prob}}</h6>
+						</div>
+						<hr style="margin-left:-1em; margin-top:1em; margin-bottom:1.2em; border: 0;
+    border-top: 2px solid rgba(255, 255, 255);">
+						
+						<div class="row justify-content-left">
+						   <h5 style="color:white;">의사 소견</h5>
+						</div>
+						<div class="row justify-content-left">
+						   {{ dr_lable_holder }}
+						</div>
+						<br>
+						<div class="row justify-content-left">
+							<h5 style="color:white;">번호&nbsp;&nbsp;&nbsp;&nbsp;메모</h5>
+						</div>
+						{% if memo_list|length ==0 %}
+							<div class="row justify-content-left">
+								메모없음
+							</div>
+						{%else%}
+							<table>
+							{% for memo in memo_list %}
+								<tr>
+									<td>{{memo[0]}}</td>
+									<td style="padding-left:1.5em;">{{ memo[4] }} <span style="color:#aaaaaa">({{ memo[3] }},{{ memo[5] }})</span></td>
+								</tr>
+							{% endfor %}
+							</table>
+						{%endif%}
+					</div> <!-- end of col -->
+				</div> <!-- end of row -->
+				  
+				<div class="row mt-4">
+					<h5 style="color:white;">메모 추가 및 수정</h5>
+				</div>
+				<form action="/patient_detail_memo" method="POST" enctype="multipart/form-data">
+					<div class="form-row">
+						<div class="col-1">
+							<select class="form-control" id="m_id" name="m_id">
+								<option value="0" SELECTED>추가</option>
+								{% for memo in memo_list %}
+									{%if memo[3] == g.user%}
+									<option value="{{ memo[0] }}">{{ memo[0] }}</option>
+									{%endif%}
+								{% endfor %}
+							</select>
+						</div>
+						<div class="col-10">
+							<textarea class="form-control" name="dr_memo" id="dr_memo" rows="1" placeholder="수정을 원하시면 번호를 선택해주세요." required>
+							</textarea>
+						</div>
+						<div class="col-1">
+							<input class="form-control" style="display:none;" type="text" name="pname" id="pname" value="{{p_name}}"/>
+							<input class="form-control" style="display:none;" type="text" name="pbirth" id="pbirth" value="{{p_birth}}"/>
+							<input class="form-control" style="display:none;" type="text" name="ptel" id="ptel" value="{{p_tel}}"/>
+							<input class="form-control" style="display:none;" type="text" name="x_id" id="x_id" value="{{x_id}}"/>
+							<input class="form-control" style="display:none;" type="text" name="p_id" id="p_id" value="{{p_id}}"/>
+							
+							<input class="form-control-submit-button" type="submit" name="dr_lable_submit" id="submit_btn" value="저장"/>
+						</div>
+					</div>
+				</form>
+			</div> <!-- end of container -->
+		</header> <!-- end of ex-header -->
+		<!-- end of header -->
+
+		<div class="copyright">
+			<div class="container">
+				<div class="row">
+					<div class="col-lg-12">
+						<p class="p-small">Copyright © 2020 <a href="https://inovatik.com">졸업프로젝트 하윤주 한혜원</a></p>
+					</div> <!-- end of col -->
+				</div> <!-- enf of row -->
+			</div> <!-- end of container -->
+		</div> <!-- end of copyright --> 
+
+		<!-- Scripts -->
+		<script src="{{ url_for('static',filename='js/jquery2.min.js') }}"></script>
+	    <script src="{{ url_for('static',filename='js/browser.min.js') }}"></script>
+	    <script src="{{ url_for('static',filename='js/breakpoints.min.js') }}"></script>
+	    <script src="{{ url_for('static',filename='js/util.js') }}"></script>
+	    <script src="{{ url_for('static',filename='js/main.js') }}"></script>
+		<script src="{{ url_for('static',filename='js/jquery.min.js') }}"></script> <!-- jQuery for Bootstrap's JavaScript plugins -->
+		<script src="{{ url_for('static',filename='js/popper.min.js') }}"></script> <!-- Popper tooltip library for Bootstrap -->
+		<script src="{{ url_for('static',filename='js/bootstrap.min.js') }}"></script> <!-- Bootstrap framework -->
+		<script src="{{ url_for('static',filename='js/jquery.easing.min.js') }}"></script> <!-- jQuery Easing for smooth scrolling between anchors -->
+		<script src="{{ url_for('static',filename='js/swiper.min.js') }}"></script> <!-- Swiper for image and text sliders -->
+		<script src="{{ url_for('static',filename='js/jquery.magnific-popup.js') }}"></script> <!-- Magnific Popup for lightboxes -->
+		<script src="{{ url_for('static',filename='js/validator.min.js') }}"></script> <!-- Validator.js - Bootstrap plugin that validates forms -->
+		<script src="{{ url_for('static',filename='js/scripts.js') }}"></script> <!-- Custom scripts -->
+		
+		
+		<script type="text/javascript">
+			var canvas;
+			var ctx;
+			var sx, sy;					// 현재 위치
+			var drawing = false;			// 현재 그리는 중인가?
+			var _width, _height;
+			var time = new Date().getTime();
+			window.onload = function() {
+				canvas = document.getElementById("canvas");
+				
+				
+				if (canvas == null || canvas.getContext == null) return;
+				ctx = canvas.getContext("2d");
+				ctx.lineCap="round";
+				//추가
+				var img = new Image();
+				
+				img.onload = function(){
+					//_width= this.clientWidth;
+					//_height= this.clientHeight;
+
+					scaleToFit(this);
+				}
+				//img.crossOrigin = 'Anonymous';
+				img.src = "{{url_for('static', filename=transfer_img)}}"+"?time="+time;
+
+				// 현재 위치를 저장한다.
+				canvas.onmousedown = function(e) {
+					e.preventDefault();
+					sx = canvasX(e.clientX);
+					sy = canvasY(e.clientY);
+					drawing = true;
+				}
+				
+				// 현재 위치에서 새로 이동한 곳까지 선을 그린다.
+				canvas.onmousemove = function(e) {
+					if (drawing) {
+						e.preventDefault();
+						ctx.beginPath();
+						ctx.moveTo(sx, sy);
+						sx = canvasX(e.clientX);
+						sy = canvasY(e.clientY);
+						ctx.lineTo(sx, sy);
+						ctx.stroke();
+					}
+				}
+
+				// 그리기를 종료한다.
+				canvas.onmouseup = function(e) {
+					drawing = false;
+				}			
+				// 선 색상 변경
+				var selcolor = document.getElementById("selcolor");
+				selcolor.onchange = function(e) {
+					ctx.strokeStyle = selcolor.value;
+				}
+				
+				// 선 굵기 변경
+				var selwidth = document.getElementById("selwidth");
+				selwidth.onchange = function(e) {
+					ctx.lineWidth = selwidth.value;
+				}
+				
+				// 모두 지우기
+				var btnclear = document.getElementById("clear");
+				btnclear.onclick = function(e) {
+					ctx.clearRect(0, 0, canvas.width, canvas.height);
+					var img = new Image();
+					img.src = "{{url_for('static', filename=transfer_img)}}"+"?time="+time;
+					img.onload = function(){
+						//_width= this.clientWidth;
+						//_height= this.clientHeight;
+
+						scaleToFit(this);
+					}
+				}
+				
+			}	
+			
+			function scaleToFit(img){
+				// get the scale
+				var scale = Math.min(canvas.width / img.width, canvas.height / img.height);
+				// get the top left position of the image
+				var x = (canvas.width / 2) - (img.width / 2) * scale;
+				var y = (canvas.height / 2) - (img.height / 2) * scale;
+				ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+			}
+			
+			function canvasX(clientX) {
+				var bound = canvas.getBoundingClientRect();
+				var bw = 5;
+				return (clientX - bound.left - bw) * (canvas.width / (bound.width - bw * 2));
+			}
+			
+			function canvasY(clientY) {
+				var bound = canvas.getBoundingClientRect();
+				var bw = 5;
+				return (clientY - bound.top - bw) * (canvas.height / (bound.height - bw * 2));
+			}
+			
+			function confirm_alert(node) {
+				return confirm("다음 업로드를 기대해주세요 ^_^");
+			}
+			
+			
+			function download1(){
+				var download = document.getElementById("download");
+				var image = document.getElementById("canvas").toDataURL("image/png")
+							.replace("image/png", "image/octet-stream");
+				download.setAttribute("href", image);
+
+			}
+		</script>
+		
+	</body>
+</html>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+   <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+   <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="폐렴 X-Ray 이미지를 입력하고 분석 결과를 받아보세요. GoogLeNet으로 딥러닝된 모델이 이미지를 분류하고 특징을 보여줍니다.">
+    <meta name="author" content="2020 IT 졸업프로젝트-한혜원, 하윤주">
+
+    <!-- OG Meta Tags to improve the way the post looks when you share the page on LinkedIn, Facebook, Google+ -->
+   <meta property="og:site_name" content="AI Covid-19 폐 X-RAY 분류기" /> <!-- website name -->
+   <meta property="og:site" content="http://3.35.191.97:5000/" /> <!-- website link -->
+   <meta property="og:title" content="AI Covid-19 폐 X-RAY 분류기" /> <!-- title shown in the actual shared post -->
+   <meta property="og:description" content="폐렴 X-Ray 이미지를 입력하고 분석 결과를 받아보세요. GoogLeNet으로 딥러닝된 모델이 이미지를 분류하고 특징을 보여줍니다." /> <!-- description shown in the actual shared post -->
+   <meta property="og:image" content="" /> <!-- image link, make sure it's jpg -->
+   <meta property="og:url" content="" /> <!-- where do you want your post to link to -->
+   <meta property="og:type" content="program" />
+
+    <!-- Website Title -->
+    <title>AI Covid-19 폐 X-RAY 분류기</title>
+   
+   <!-- Styles -->
+   <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,400i,700&display=swap&subset=latin-ext" rel="stylesheet">
+   <link href="{{ url_for('static', filename='css/bootstrap.css') }}" rel="stylesheet">
+   <link href="{{ url_for('static', filename='css/fontawesome-all.css') }}" rel="stylesheet">
+   <link href="{{ url_for('static', filename='css/swiper.css') }}" rel="stylesheet">
+   <link href="{{ url_for('static', filename='css/magnific-popup.css') }}" rel="stylesheet">
+   <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
+   
+   <!-- Icon -->
+   <link rel="icon" href="{{ url_for('static', filename='images/icon-hhproject.png') }}">
+   
+</head>
+<body>
+    <a href="#main" class="back-to-top page-scroll" style="display: inline;">Back to Top</a>
+    
+    <!-- Preloader -->
+    <div class="spinner-wrapper">
+        <div class="spinner">
+            <div class="bounce1"></div>
+            <div class="bounce2"></div>
+            <div class="bounce3"></div>
+        </div>
+    </div>
+    <!-- end of preloader -->
+   
+<!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom fixed-top">
+        <div class="container">
+
+            <!-- Text Logo - Use this if you don't have a graphic logo -->
+            <!-- <a class="navbar-brand logo-text page-scroll" href="index.html">Tivo</a> -->
+
+            <!-- Image Logo -->
+            <a class="navbar-brand logo-image" href="/"><img src="{{ url_for('static', filename='images/logo-hhproject.png') }}" alt="LOGO"></a>  
+            
+            <!-- Mobile Menu Toggle Button -->
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-awesome fas fa-bars"></span>
+                <span class="navbar-toggler-awesome fas fa-times"></span>
+            </button>
+            <!-- end of mobile menu toggle button -->
+
+            <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link page-scroll" href="/">HOME <span class="sr-only">(current)</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link page-scroll" href="/img_select">진단</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link page-scroll" href="/patient_progress">환자기록</a>
+                    </li>
+                    {% if g.user %}
+                    <li class="nav-item">
+                        <a class="nav-link page-scroll" href="/logout">{{ g.user }} (LOGOUT)</a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link page-scroll" href="/login"> LOGIN</a>
+                    </li>
+                    {% endif %}
+                    <!-- Dropdown Menu -->          
+                    
+                    <!-- end of dropdown menu -->
+
+                </ul>
+            </div>
+        </div> <!-- end of container -->
+    </nav> <!-- end of navbar -->
+    <!-- end of navigation -->
+   
+   
+    <header id="header" class="ex-2-header">
+    <!-- 환자 정보 입력 및 경과 이미지 출력 -->
+    <div id="main">
+        <div class="inner">
+            <div class="form">
+                <div class="container">
+                    <div class="text-container">
+                        <h2>로그인</h2>
+
+                        <!-- Newsletter Form -->
+                        <form align="center" action="/login" method="POST" enctype="multipart/form-data">
+                            <div class="form-group">
+                                <input type="text" class="form-control-input" id="user_id" name="user_id" placeholder="아이디" required>
+                                <div class="help-block with-errors"></div>
+                            </div>
+                            
+                            <div class="form-group birth">
+                                <input type="password" class="form-control-input" id="user_pwd" name="user_pwd" placeholder="비밀번호" required>
+                                <div class="help-block with-errors"></div>
+                            </div>
+                            <div class="form-group">
+                                <button type="submit" class="form-control-submit-button">확인</button>
+                            </div>
+                        </form>
+                        <!-- end of newsletter form -->
+
+                        {% if no_user == "True" %}
+                        <script type="text/javascript">
+                            window.alert("일치하는 회원 정보가 없습니다.\n입력한 아이디 혹은 패스워드가 맞는지 다시 확인해주세요.");
+                            console.log("{{ no_user }}")
+                        </script>
+                        {% else %}
+                        
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+	<div class="copyright">
+		<div class="container">
+			<div class="row">
+				<div class="col-lg-12">
+					<p class="p-small">Copyright © 2020 <a href="https://inovatik.com">졸업프로젝트 하윤주 한혜원</a></p>
+				</div> <!-- end of col -->
+			</div> <!-- enf of row -->
+		</div> <!-- end of container -->
+	</div> <!-- end of copyright --> 
+
+
+   <!-- Scripts -->
+   <script src="{{ url_for('static',filename='js/jquery2.min.js') }}"></script>
+   <script src="{{ url_for('static',filename='js/browser.min.js') }}"></script>
+   <script src="{{ url_for('static',filename='js/breakpoints.min.js') }}"></script>
+   <script src="{{ url_for('static',filename='js/util.js') }}"></script>
+   <script src="{{ url_for('static',filename='js/main.js') }}"></script>
+   
+   <script src="{{ url_for('static',filename='js/jquery.min.js') }}"></script> <!— jQuery for Bootstrap's JavaScript plugins —>
+   <script src="{{ url_for('static',filename='js/popper.min.js') }}"></script> <!— Popper tooltip library for Bootstrap —>
+   <script src="{{ url_for('static',filename='js/bootstrap.min.js') }}"></script> <!— Bootstrap framework —>
+   <script src="{{ url_for('static',filename='js/swiper.min.js') }}"></script> <!— Swiper for image and text sliders —>
+   <script src="{{ url_for('static',filename='js/jquery.magnific-popup.js') }}"></script> <!— Magnific Popup for lightboxes —>
+   <script src="{{ url_for('static',filename='js/validator.min.js') }}"></script> <!— Validator.js - Bootstrap plugin that validates forms —>
+   <script src="{{ url_for('static',filename='js/scripts.js') }}"></script> <!— Custom scripts —>
+
+   </body>
+</html>

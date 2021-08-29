@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ko">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<meta http-equiv="X-UA-Compatible" content="ie=edge">
+		
+		<!-- SEO Meta Tags -->
+		<meta name="description" content="폐렴 X-Ray 이미지를 입력하고 분석 결과를 받아보세요. GoogLeNet으로 딥러닝된 모델이 이미지를 분류하고 특징을 보여줍니다.">
+		<meta name="author" content="2020 IT 졸업프로젝트-한혜원, 하윤주">
+
+		<!-- OG Meta Tags to improve the way the post looks when you share the page on LinkedIn, Facebook, Google+ -->
+		<meta property="og:site_name" content="AI Covid-19 폐 X-RAY 분류기" /> <!-- website name -->
+		<meta property="og:site" content="http://3.35.191.97:5000/" /> <!-- website link -->
+		<meta property="og:title" content="AI Covid-19 폐 X-RAY 분류기" /> <!-- title shown in the actual shared post -->
+		<meta property="og:description" content="폐렴 X-Ray 이미지를 입력하고 분석 결과를 받아보세요. GoogLeNet으로 딥러닝된 모델이 이미지를 분류하고 특징을 보여줍니다." /> <!-- description shown in the actual shared post -->
+		<meta property="og:image" content="" /> <!-- image link, make sure it's jpg -->
+		<meta property="og:url" content="" /> <!-- where do you want your post to link to -->
+		<meta property="og:type" content="program" />
+
+		<!-- Website Title -->
+		<title>AI Covid-19 폐 X-RAY 분류기</title>
+		
+		<!-- Styles -->
+		<link href="https://fonts.googleapis.com/css?family=Open+Sans:400,400i,700&display=swap&subset=latin-ext" rel="stylesheet" />
+		<link href="{{ url_for('static', filename='css/bootstrap.css') }}" rel="stylesheet" />
+		<link href="{{ url_for('static', filename='css/fontawesome-all.css') }}" rel="stylesheet" />
+		<link href="{{ url_for('static', filename='css/swiper.css') }}" rel="stylesheet" />
+		<link href="{{ url_for('static', filename='css/magnific-popup.css') }}" rel="stylesheet" />
+		<link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet" />
+		
+		<!-- Icon -->
+		<link rel="icon" href="{{ url_for('static', filename='images/icon-hhproject.png') }}">
+
+	</head>
+	<body>
+		
+		<!-- Preloader -->
+		<div class="spinner-wrapper">
+			<div class="spinner">
+				<div class="bounce1"></div>
+				<div class="bounce2"></div>
+				<div class="bounce3"></div>
+			</div>
+		</div>
+		<!-- end of preloader -->
+		
+
+		<!-- Navigation -->
+		<nav class="navbar navbar-expand-lg navbar-dark navbar-custom fixed-top">
+			<div class="container">
+
+				<!-- Text Logo - Use this if you don't have a graphic logo -->
+				<!-- <a class="navbar-brand logo-text page-scroll" href="index.html">Tivo</a> -->
+
+				<!-- Image Logo -->
+				<a class="navbar-brand logo-image" href="/"><img src="{{ url_for('static', filename='images/logo-hhproject.png') }}" alt="LOGO"></a>  
+				
+				<!-- Mobile Menu Toggle Button -->
+				<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+					<span class="navbar-toggler-awesome fas fa-bars"></span>
+					<span class="navbar-toggler-awesome fas fa-times"></span>
+				</button>
+				<!-- end of mobile menu toggle button -->
+
+				<div class="collapse navbar-collapse" id="navbarsExampleDefault">
+					<ul class="navbar-nav ml-auto">
+						<li class="nav-item">
+							<a class="nav-link page-scroll" href="/">HOME <span class="sr-only">(current)</span></a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link page-scroll" href="/img_select">진단</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link page-scroll" href="/patient_progress">환자기록</a>
+						</li>
+						{% if g.user %}
+						<li class="nav-item">
+							<a class="nav-link page-scroll" href="/logout">{{ g.user }} (LOGOUT)</a>
+						</li>
+						{% else %}
+						<li class="nav-item">
+							<a class="nav-link page-scroll" href="/login"> LOGIN</a>
+						</li>
+						{% endif %}
+						<!-- Dropdown Menu -->          
+						<!-- end of dropdown menu -->
+					</ul>
+				</div>
+			</div> <!-- end of container -->
+		</nav> <!-- end of navbar -->
+		<!-- end of navigation -->
+
+		<!-- Header -->
+		<header id="header" class="ex-2-header">
+			<div class="container">
+				<div class="row mt-3">
+					<div class="col-lg-12">
+						<h1>분석 결과</h1>
+					</div>
+				</div>
+				<div class="row mt-5 justify-content-center">
+					<div class="col-md-4">
+						<p class="h3">환자명: {{p_name}}</p>
+					</div>
+					<div class="col-md-4">
+						<p class="h3">클래스 분류: {{pred}}</p>
+					</div>
+					<div class="col-md-4">
+						<p class="h3">예측 정확도: {{prob}}</p>
+					</div>
+				</div>
+				<hr class="justify-content-center" style="border: 0px; height: 1px; background-color: white; margin-top:-1.75rem;">
+				<div class="row" style="margin-top:3rem;">
+					<div class="col-lg-6">
+						<div class="row" style="text-align: left; ">
+						   <div class="col-lg-9">
+							  <div>
+							  <select id="selcolor"  style="width:65px; border: 1px solid #999; border-radius:2rem; padding-left:5px;" >
+								 <option value="black">색상</option>
+								 <option value="black">검정</option>
+								 <option value="red">빨강</option>
+								 <option value="green">초록</option>
+								 <option value="blue">파랑</option>
+								 <option value="magenta">분홍</option>
+							  </select>
+							  <select id="selwidth"  style="width:65px; border: 1px solid #999; border-radius:2rem; padding-left:5px;" >
+								 <option value="1">굵기</option>
+								 <option value="1">얇게</option>
+								 <option value="3">중간</option>
+								 <option value="5">굵게</option>
+							  </select>
+							  <input style="width:85px; height:30px; font: 700 0.9rem/0 'Open Sans', sans-serif; background-color: rgb(255, 255, 255); color: #0B486B; border: 1px solid #999; border-radius:2rem; margin-left:1rem;"  type="button" id="clear" value="모두 지움" />
+							  </div>
+						   </div>
+						   <div class="col-lg-3 text-right">
+								<form align="center" action="/canvas_upload" method="POST" enctype="multipart/form-data">
+									<input type="text" id="canvas_img" name="canvas_img" style="display: none;" />
+									<input style="width:85px; height:30px; font: 700 0.9rem/0 'Open Sans', sans-serif; background-color: rgb(255, 255, 255); color: #0B486B; border: 1px solid #999; border-radius:2rem;" type="submit" name="canvas_upload" id="canvas_upload" value="마킹 완료" />
+								</form>
+							</div>
+						</div>
+						<div class="row mt-2" style="justify-content: center; ">
+						   <div class="col-lg-12">
+							  <canvas id="canvas" width="550" height="490" style="width: 100%;border: 1px solid black; background-color:black;" >지원하지 않는 브라우저입니다.</canvas>
+						   </div>
+						</div>
+					</div>
+					<div class="col-lg-6">
+						<div class="row justify-content-center">
+							<div class="col-lg-12">
+								<p style="color: white; font-weight:bold;">* 의사의 다른 소견이 있다면 수정해주세요.</p>
+							</div>
+						</div>
+						<form align="center" action="/dr_lable_edit" method="POST" enctype="multipart/form-data">
+						<div class="row form-group justify-content-center mt-n4">
+							<label class="col-md-3 text-right" style="color:white; padding:-10px;">의사 소견: </label>
+							<div class="col-md-7" style="padding:0;">
+								<textarea class="form-control" name="dr_lable" id="dr_lable" rows="1" required>{{dr_lable_holder}}</textarea>
+							</div>
+							<div class="col-md-2">
+								<input class="form-control-submit-button" type="submit" name="dr_lable_submit" id="submit_btn" value="수정"/>
+							</div>
+						</div>
+						</form>
+						<form align="center" action="/dr_memo_edit" method="POST" enctype="multipart/form-data">
+						<div class="row form-group justify-content-center">
+							<label class="col-md-3 text-right" style="color:white;">메모: </label>
+							<div class="col-md-7" style="padding:0;">
+								<textarea class="form-control" name="dr_memo" id="dr_memo" rows="16" required>{{dr_memo_holder}}</textarea>
+							</div>
+							<div class="col-md-2">
+								<input class="form-control-submit-button" type="submit" name="dr_memo_submit" id="submit_btn" value="수정"/>
+							</div>
+						</div>
+						</form>
+					</div>
+				</div>
+							
+			</div> <!-- end of container -->
+		</header> <!-- end of ex-header -->
+		<!-- end of header -->
+		
+		<div class="copyright">
+			<div class="container">
+				<div class="row">
+					<div class="col-lg-12">
+						<p class="p-small">Copyright © 2020 <a href="https://inovatik.com">졸업프로젝트 하윤주 한혜원</a></p>
+					</div> <!-- end of col -->
+				</div> <!-- enf of row -->
+			</div> <!-- end of container -->
+		</div> <!-- end of copyright --> 
+
+
+		<!-- Scripts -->
+		<script src="{{ url_for('static',filename='js/jquery.min.js') }}"></script> <!-- jQuery for Bootstrap's JavaScript plugins -->
+		<script src="{{ url_for('static',filename='js/popper.min.js') }}"></script> <!-- Popper tooltip library for Bootstrap -->
+		<script src="{{ url_for('static',filename='js/bootstrap.min.js') }}"></script> <!-- Bootstrap framework -->
+		<script src="{{ url_for('static',filename='js/jquery.easing.min.js') }}"></script> <!-- jQuery Easing for smooth scrolling between anchors -->
+		<script src="{{ url_for('static',filename='js/jquery-3.5.1.min.js') }}"></script> <!-- jQuery -->
+		<script src="{{ url_for('static',filename='js/swiper.min.js') }}"></script> <!-- Swiper for image and text sliders -->
+		<script src="{{ url_for('static',filename='js/jquery.magnific-popup.js') }}"></script> <!-- Magnific Popup for lightboxes -->
+		<script src="{{ url_for('static',filename='js/validator.min.js') }}"></script> <!-- Validator.js - Bootstrap plugin that validates forms -->
+		<script src="{{ url_for('static',filename='js/scripts.js') }}"></script> <!-- Custom scripts -->
+
+		<script type="text/javascript">
+			var canvas;
+			var ctx;
+			var sx, sy;					// 현재 위치
+			var drawing = false;			// 현재 그리는 중인가?
+			var _width, _height;
+			var time = new Date().getTime();
+			window.onload = function() {
+				canvas = document.getElementById("canvas");
+				
+				if (canvas == null || canvas.getContext == null) return;
+				ctx = canvas.getContext("2d");
+				ctx.lineCap="round";
+				//추가
+				var img = new Image();
+				
+				img.onload = function(){
+					//_width= this.clientWidth;
+					//_height= this.clientHeight;
+					scaleToFit(this);
+				}
+				//img.crossOrigin = 'Anonymous';
+				console.log("log0:"+"{{url_for('static', filename=canvas_img_dir)}}");
+				if ("{{url_for('static', filename=canvas_img_dir)}}" == ("/static/None")) {
+					img.src = "{{url_for('static', filename=transfer_img)}}"+"?time="+time;
+					console.log("log: "+img.src);
+				} else {
+					img.src = "{{url_for('static', filename=canvas_img_dir)}}"+"?time="+time;
+					console.log("log2: "+img.src)
+				}
+
+				// 현재 위치를 저장한다.
+				canvas.onmousedown = function(e) {
+					e.preventDefault();
+					sx = canvasX(e.clientX);
+					sy = canvasY(e.clientY);
+					drawing = true;
+				}
+				
+				// 현재 위치에서 새로 이동한 곳까지 선을 그린다.
+				canvas.onmousemove = function(e) {
+					if (drawing) {
+						e.preventDefault();
+						ctx.beginPath();
+						ctx.moveTo(sx, sy);
+						sx = canvasX(e.clientX);
+						sy = canvasY(e.clientY);
+						ctx.lineTo(sx, sy);
+						ctx.stroke();
+					}
+				}
+
+				// 그리기를 종료한다.
+				canvas.onmouseup = function(e) {
+					drawing = false;
+				}			
+				// 선 색상 변경
+				var selcolor = document.getElementById("selcolor");
+				selcolor.onchange = function(e) {
+					ctx.strokeStyle = selcolor.value;
+				}
+				
+				// 선 굵기 변경
+				var selwidth = document.getElementById("selwidth");
+				selwidth.onchange = function(e) {
+					ctx.lineWidth = selwidth.value;
+				}
+				
+				// 모두 지우기
+				var btnclear = document.getElementById("clear");
+				btnclear.onclick = function(e) {
+					ctx.clearRect(0, 0, canvas.width, canvas.height);
+					var img = new Image();
+					img.src = "{{url_for('static', filename=transfer_img)}}"+"?time="+time;
+					img.onload = function(){
+						//_width= this.clientWidth;
+						//_height= this.clientHeight;
+
+						scaleToFit(this);
+					}
+				}
+
+			}	
+			
+			function scaleToFit(img){
+				// get the scale
+				var scale = Math.min(canvas.width / img.width, canvas.height / img.height);
+				// get the top left position of the image
+				var x = (canvas.width / 2) - (img.width / 2) * scale;
+				var y = (canvas.height / 2) - (img.height / 2) * scale;
+				ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+			}
+			
+			function canvasX(clientX) {
+				var bound = canvas.getBoundingClientRect();
+				var bw = 5;
+				return (clientX - bound.left - bw) * (canvas.width / (bound.width - bw * 2));
+			}
+			
+			function canvasY(clientY) {
+				var bound = canvas.getBoundingClientRect();
+				var bw = 5;
+				return (clientY - bound.top - bw) * (canvas.height / (bound.height - bw * 2));
+			}
+			
+			function confirm_alert(node) {
+				return confirm("다음 업로드를 기대해주세요 ^_^");
+			}
+		</script>
+		<script>
+			$('input[name=canvas_upload]').click(function(){  
+				const canvaselm = document.getElementById('canvas');
+				const imgBase64 = canvaselm.toDataURL('image/png', 'image/octet-stream');
+				var canvas_file = document.getElementById('canvas_img');
+				canvas_file.setAttribute('value', imgBase64)
+			});
+		</script>
+		
+	</body>
+</html>
